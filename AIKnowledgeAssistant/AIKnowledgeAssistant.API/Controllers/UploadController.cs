@@ -20,8 +20,11 @@ namespace AIKnowledgeAssistant.API.Controllers
                 await file.CopyToAsync(stream);
             }
             var processor = new DocumentProcessingService();
+            var embeddingService = new EmbeddingService();
             var text = processor.ExtractTextFromPdf(filePath);
             var chunks = processor.SplitIntoChunks(text, 10);
+            var chunk = chunks.FirstOrDefault();
+            await embeddingService.GenerateEmbedding(chunk);
             return Ok(text); //preview
         }
     }
