@@ -12,15 +12,20 @@ namespace AIKnowledgeAssistant.API.Services
         public EmbeddingService()
         {
             _client = new EmbeddingClient(
-                model: "text-embedding-3-small",
-                apiKey: ""
-                );
+               model: "text-embedding-3-small",
+               apiKey: Environment.GetEnvironmentVariable("OPEN_API_KEY")
+               );
+
         }
-        public async Task GenerateEmbedding(string text)
+
+        public async Task<float[]> GenerateEmbedding(string text)
         {
             var embeddings = await _client.GenerateEmbeddingAsync(text);
-            var vector = embeddings.Value.ToFloats();
+            var vector = embeddings.Value.ToFloats().ToArray();
             Console.WriteLine("Embedding Length: {vector.Length}" + vector.Length);
+            return vector;
         }
+
+
     }
 }

@@ -7,6 +7,15 @@ namespace AIKnowledgeAssistant.API.Controllers
     [Route("api/[Controller]")]
     public class DocumentController : Controller
     {
+        private readonly EmbeddingService _embeddingService;
+        private readonly DocumentProcessingService _documentProcessingService;
+        private readonly VectorDatabaseService _vectorDatabaseService;
+        public DocumentController()
+        {
+            _embeddingService = new EmbeddingService();
+            _documentProcessingService = new DocumentProcessingService();
+            _vectorDatabaseService =  new VectorDatabaseService();
+        }
         [HttpPost("upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
@@ -19,13 +28,10 @@ namespace AIKnowledgeAssistant.API.Controllers
             {
                 await file.CopyToAsync(stream);
             }
-            var processor = new DocumentProcessingService();
-            var embeddingService = new EmbeddingService();
-            var text = processor.ExtractTextFromPdf(filePath);
-            var chunks = processor.SplitIntoChunks(text, 10);
-            var chunk = chunks.FirstOrDefault();
-            await embeddingService.GenerateEmbedding(chunk);
-            return Ok(text); //preview
+            await _documentProcessingService.ProcessDocument(file);
+            return Ok("Document processed successfully");
         }
+
+       
     }
 }

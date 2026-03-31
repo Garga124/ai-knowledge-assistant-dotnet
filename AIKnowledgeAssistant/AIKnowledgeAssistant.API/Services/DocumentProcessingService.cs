@@ -1,10 +1,36 @@
-﻿using UglyToad.PdfPig;
+﻿using Microsoft.AspNetCore.Http;
+using UglyToad.PdfPig;
 
 namespace AIKnowledgeAssistant.API.Services
 {
     public class DocumentProcessingService
     {
-        public DocumentProcessingService() { }
+        private readonly EmbeddingService _embeddingService;
+        private readonly VectorDatabaseService _vectorDatabaseService;
+        public DocumentProcessingService() 
+        {
+            _embeddingService = new EmbeddingService();
+            _vectorDatabaseService = new VectorDatabaseService();
+        }
+
+        public async Task ProcessDocument(IFormFile file)
+        {
+            //Extract Text
+
+            var filePath = Path.Combine("Uploads", file.FileName);
+            var text = ExtractTextFromPdf(filePath);    
+            var chunks = SplitIntoChunks(text, 10);
+            var allVectors = new List<float[]>();
+            var tasks = chunks.Select(async chunk =>
+            {
+                var embedding = await _embeddingService.GenerateEmbedding(chunk);
+
+                await _vectorDatabaseService.StoreEmbedding(embedding.ToList(), chunk);
+            });
+
+            await Task.WhenAll(tasks);
+
+        }
         public string ExtractTextFromPdf(string filePath)
         {
             using (var document = PdfDocument.Open(filePath))

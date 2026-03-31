@@ -1,4 +1,10 @@
+using AIKnowledgeAssistant.API.Services;
+
 var builder = WebApplication.CreateBuilder(args);
+
+//Register Services
+builder.Services.AddSingleton<VectorDatabaseService>();
+
 
 // Add services to the container.
 
@@ -9,6 +15,12 @@ builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+//create collection when app starts
+using(var scope = app.Services.CreateScope())
+{
+    var vectorService = scope.ServiceProvider.GetRequiredService<VectorDatabaseService>();  
+    await vectorService.CreateCollection();
+}
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
