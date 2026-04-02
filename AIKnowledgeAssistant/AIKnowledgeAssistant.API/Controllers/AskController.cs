@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using AIKnowledgeAssistant.API.Models;
+using AIKnowledgeAssistant.API.Services;
+using Microsoft.AspNetCore.Mvc;
 
 namespace AIKnowledgeAssistant.API.Controllers
 {
@@ -6,10 +8,17 @@ namespace AIKnowledgeAssistant.API.Controllers
     [Route("api/[controller]")]
     public class ChatController : Controller
     {
-        [HttpPost("ask")]
-        public IActionResult AskQuestion()
+        private readonly AIResponseService _aIResponseService;
+        public ChatController()
         {
-            return Ok("Ask Controller Working");
+            _aIResponseService = new AIResponseService();
+        }
+
+        [HttpPost("ask")]
+        public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
+        {
+            var answer = await _aIResponseService.AskQuestion(request.Question);
+            return Ok(answer);
         }
     }
 }

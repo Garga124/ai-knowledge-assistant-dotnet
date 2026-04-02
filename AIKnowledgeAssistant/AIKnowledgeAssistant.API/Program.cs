@@ -1,9 +1,11 @@
+using AIKnowledgeAssistant.API.Interfaces;
 using AIKnowledgeAssistant.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 //Register Services
 builder.Services.AddSingleton<VectorDatabaseService>();
+builder.Services.AddScoped<IOpenAIService, OpenAIService>();
 
 
 // Add services to the container.

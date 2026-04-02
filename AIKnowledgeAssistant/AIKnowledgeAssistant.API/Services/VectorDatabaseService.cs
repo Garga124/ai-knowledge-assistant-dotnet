@@ -15,11 +15,16 @@ namespace AIKnowledgeAssistant.API.Services
         }
         public async Task CreateCollection()
         {
-            await _client.CreateCollectionAsync("my_collection", new VectorParams
+            var exists = await _client.CollectionExistsAsync("my_collection");
+
+            if(!exists)
             {
-                Size = 1536,
-                Distance = Distance.Cosine
-            });
+                await _client.CreateCollectionAsync("my_collection", new VectorParams
+                {
+                    Size = 1536,
+                    Distance = Distance.Cosine
+                });
+            }
         }
         public async Task StoreEmbedding(List<float>embedding, string text)
         {
@@ -40,18 +45,25 @@ namespace AIKnowledgeAssistant.API.Services
     });
         }
 
-        public async Task Search(List<float> queryEmbedding)
+        public async Task<List<string>> Search(float[] queryEmbedding)
         {
             var result = await _client.SearchAsync(
-                collectionName: "documents",
-                vector: queryEmbedding.ToArray(),
+                collectionName: "my_collection",
+                vector: queryEmbedding,
                 limit: 3
             );
+            var texts = new List<string>();
 
             foreach (var item in result)
             {
-                Console.WriteLine(item.Payload["text"]);
+                if (item.Payload.TryGetValue("text", out var text))
+                {
+                    Console.WriteLine(item.Payload["text"]);
+                    texts.Add(text.ToString());
+                }
+                
             }
+            return texts;
         }
     }
 }
