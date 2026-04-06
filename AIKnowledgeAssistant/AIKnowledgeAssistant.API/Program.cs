@@ -3,6 +3,10 @@ using AIKnowledgeAssistant.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
 //Register Services
 builder.Services.AddSingleton<VectorDatabaseService>();
 builder.Services.AddScoped<IOpenAIService, OpenAIService>();
