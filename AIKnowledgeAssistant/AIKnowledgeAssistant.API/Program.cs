@@ -13,6 +13,7 @@ builder.Services.AddScoped<IOpenAIService, OpenAIService>();
 builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
 builder.Services.AddScoped<IVectorDatabaseService, VectorDatabaseService>();
 builder.Services.AddScoped<IAIResponseService, AIResponseService>();
+builder.Services.AddScoped<IDocumentProcessingService, DocumentProcessingService>();
 
 
 // Add services to the container.
