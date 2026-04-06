@@ -27,6 +27,9 @@ Benefits:
 The architecture follows a layered design with dependency injection and modular components.
 
 Architecture diagram (to be added):
+
+RAG Pipeline
+Upload → Chunk → Embedding → Vector DB → Retrieval → AI
   
 # Tech Stack:
 - .NET 8 Web API
