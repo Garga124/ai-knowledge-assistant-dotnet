@@ -2,7 +2,7 @@
 {
     public interface IDocumentProcessingService
     {
-        Task ProcessDocument(IFormFile file);
+        Task ProcessDocument(IFormFile file, string filePath);
         string ExtractTextFromPdf(string filePath);
     }
 }
