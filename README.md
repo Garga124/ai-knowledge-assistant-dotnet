@@ -12,7 +12,7 @@ Pipeline steps:
 1. User submits a question
 2. The system retrieves relevant documents from the knowledge store
 3. Retrieved context is injected into the prompt
-4. The LLM generates an answer using the retrieved knowledge
+4. The AI Knowledge Assistant generates an answer using the retrieved knowledge
 
 Benefits:
 - Provides answers based on user-uploaded knowledge
