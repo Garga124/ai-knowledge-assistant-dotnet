@@ -46,7 +46,7 @@ namespace AIKnowledgeAssistant.API.Controllers
                 }
                 _logger.LogInformation("Document Uploaded successfully at {FilePath}",filePath);
                 _logger.LogInformation("Starting document processing pipeline");
-                await _documentProcessingService.ProcessDocument(file);
+                await _documentProcessingService.ProcessDocument(file,filePath);
                 _logger.LogInformation("Document processing completed successfully for {FileName}", file.FileName);
 
                 return Ok("Document processed successfully");
