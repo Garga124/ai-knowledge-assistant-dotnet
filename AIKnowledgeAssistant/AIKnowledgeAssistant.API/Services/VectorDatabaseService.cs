@@ -1,16 +1,17 @@
-﻿using Qdrant.Client;
+﻿using AIKnowledgeAssistant.API.Interfaces;
+using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
 namespace AIKnowledgeAssistant.API.Services
 {
-    public class VectorDatabaseService
+    public class VectorDatabaseService : IVectorDatabaseService
     {
         private readonly QdrantClient _client;
 
         public VectorDatabaseService()
         {
          
-            _client = new QdrantClient("localhost",6334);
+            _client = new QdrantClient("localhost", 6334);
 
         }
         public async Task CreateCollection()

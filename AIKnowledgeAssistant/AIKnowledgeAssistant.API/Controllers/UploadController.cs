@@ -1,4 +1,5 @@
-﻿using AIKnowledgeAssistant.API.Services;
+﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AIKnowledgeAssistant.API.Controllers
@@ -7,14 +8,14 @@ namespace AIKnowledgeAssistant.API.Controllers
     [Route("api/[Controller]")]
     public class DocumentController : Controller
     {
-        private readonly EmbeddingService _embeddingService;
-        private readonly DocumentProcessingService _documentProcessingService;
-        private readonly VectorDatabaseService _vectorDatabaseService;
-        public DocumentController()
+        private readonly IEmbeddingService _embeddingService;
+        private readonly IDocumentProcessingService _documentProcessingService;
+        private readonly IVectorDatabaseService _vectorDatabaseService;
+        public DocumentController(IEmbeddingService embeddingService, IVectorDatabaseService vectorDatabaseService, IDocumentProcessingService documentProcessingService)
         {
-            _embeddingService = new EmbeddingService();
-            _documentProcessingService = new DocumentProcessingService();
-            _vectorDatabaseService =  new VectorDatabaseService();
+            _embeddingService = embeddingService;
+            _documentProcessingService = documentProcessingService;
+            _vectorDatabaseService = vectorDatabaseService;
         }
         [HttpPost("upload")]
         public async Task<IActionResult> Upload(IFormFile file)

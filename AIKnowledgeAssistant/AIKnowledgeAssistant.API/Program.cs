@@ -6,6 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 //Register Services
 builder.Services.AddSingleton<VectorDatabaseService>();
 builder.Services.AddScoped<IOpenAIService, OpenAIService>();
+builder.Services.AddScoped<IEmbeddingService, EmbeddingService>();
+builder.Services.AddScoped<IVectorDatabaseService, VectorDatabaseService>();
+builder.Services.AddScoped<IAIResponseService, AIResponseService>();
 
 
 // Add services to the container.
@@ -14,6 +17,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
 
 var app = builder.Build();
 

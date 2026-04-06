@@ -1,16 +1,17 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using AIKnowledgeAssistant.API.Interfaces;
+using Microsoft.AspNetCore.Http;
 using UglyToad.PdfPig;
 
 namespace AIKnowledgeAssistant.API.Services
 {
     public class DocumentProcessingService
     {
-        private readonly EmbeddingService _embeddingService;
-        private readonly VectorDatabaseService _vectorDatabaseService;
-        public DocumentProcessingService() 
+        private readonly IEmbeddingService _embeddingService;
+        private readonly IVectorDatabaseService _vectorDatabaseService;
+        public DocumentProcessingService(IEmbeddingService embeddingService, IVectorDatabaseService vectorDatabaseService) 
         {
-            _embeddingService = new EmbeddingService();
-            _vectorDatabaseService = new VectorDatabaseService();
+            _embeddingService = embeddingService;
+            _vectorDatabaseService = vectorDatabaseService;
         }
 
         public async Task ProcessDocument(IFormFile file)
@@ -23,7 +24,7 @@ namespace AIKnowledgeAssistant.API.Services
             var allVectors = new List<float[]>();
             var tasks = chunks.Select(async chunk =>
             {
-                var embedding = await _embeddingService.GenerateEmbedding(chunk);
+                var embedding = await _embeddingService.GenerateEmbeddingAsync(chunk);
 
                 await _vectorDatabaseService.StoreEmbedding(embedding.ToList(), chunk);
             });

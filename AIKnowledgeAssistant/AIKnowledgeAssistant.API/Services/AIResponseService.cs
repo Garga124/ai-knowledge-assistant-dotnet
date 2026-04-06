@@ -1,20 +1,22 @@
-﻿namespace AIKnowledgeAssistant.API.Services
+﻿using AIKnowledgeAssistant.API.Interfaces;
+
+namespace AIKnowledgeAssistant.API.Services
 {
-    public class AIResponseService
+    public class AIResponseService : IAIResponseService
     {
-        private readonly EmbeddingService _embeddingService;
-        private readonly VectorDatabaseService _vectorDatabaseService;
-        private readonly OpenAIService _openAIService;
+        private readonly IEmbeddingService _embeddingService;
+        private readonly IVectorDatabaseService _vectorDatabaseService;
+        private readonly IOpenAIService _openAIService;
        
-        public AIResponseService()
+        public AIResponseService(IEmbeddingService embeddingService, IVectorDatabaseService vectorDatabaseService, IOpenAIService openAIService)
         {
-            _embeddingService = new EmbeddingService();
-            _vectorDatabaseService = new VectorDatabaseService();   
-            _openAIService = new OpenAIService();
+            _embeddingService = embeddingService;
+            _vectorDatabaseService = vectorDatabaseService;
+            _openAIService = openAIService;
         }
-        public async Task<string> AskQuestion(string question)
+        public async Task<string> AskQuestionAsync(string question)
         {
-            var queryEmbedding = await _embeddingService.GenerateEmbedding(question);
+            var queryEmbedding = await _embeddingService.GenerateEmbeddingAsync(question);
             var results = await _vectorDatabaseService.Search(queryEmbedding);
             var matchingContext = BuildContext(results);
             var answer = await _openAIService.GenerateAnswerAsync(matchingContext, question);
