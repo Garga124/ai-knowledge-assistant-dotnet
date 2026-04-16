@@ -1,4 +1,5 @@
 ﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Models;
 using Qdrant.Client;
 using Qdrant.Client.Grpc;
 
@@ -42,7 +43,7 @@ namespace AIKnowledgeAssistant.API.Services
             
 
         }
-        public async Task StoreEmbedding(List<float>embedding, string text)
+        public async Task StoreEmbedding(List<float>embedding, string chunk, FileMetaData metaData)
         {
             if (embedding == null || embedding.Count == 0)
             {
@@ -64,7 +65,13 @@ namespace AIKnowledgeAssistant.API.Services
                     },
                     Payload =
                     {
-                        { "text", text }
+                        { "text", chunk },
+                        {"fileName" ,metaData.Name},
+                        { "chunkIndex",metaData.ChunkIndex},
+                        {"documentId",metaData.DocumentId },
+                        { "uploadedAt",DateTime.UtcNow.ToString()}
+                           
+
                     }
                 }
             });
@@ -79,12 +86,12 @@ namespace AIKnowledgeAssistant.API.Services
             }
         }
 
-        public async Task<List<string>> Search(float[] queryEmbedding)
+        public async Task<List<ChunkMetaData>> Search(float[] queryEmbedding)
         {
             if (queryEmbedding == null || queryEmbedding.Length == 0)
             {
                 _logger.LogWarning("Search attempted with empty query embedding.");
-                return new List<string>();
+                return new List<ChunkMetaData>();
             }
             try
             {
@@ -96,17 +103,12 @@ namespace AIKnowledgeAssistant.API.Services
                    );
                 _logger.LogInformation("Vector search returned {ResultCount} results", result.Count);
 
-                var texts = new List<string>();
-
-                foreach (var item in result)
-                {
-                    if (item.Payload.TryGetValue("text", out var text))
-                    {
-                        texts.Add(text.ToString());
-                    }
-
-                }
-                return texts;
+                
+                return result.Select(r => MapToChunkMetaData(r.Payload,r.Score)).ToList();
+                //TODO: Filter low-quality matches
+                var filteredData = result.Where(r => r.Score >= 0.35).OrderByDescending(r => r.Score).ToList();
+                return filteredData.Select(r => MapToChunkMetaData(r.Payload,r.Score)).ToList();
+                
             }
             catch (Exception ex)
             {
@@ -115,5 +117,33 @@ namespace AIKnowledgeAssistant.API.Services
                 throw;
             }
         }
+
+            private ChunkMetaData MapToChunkMetaData(Google.Protobuf.Collections.MapField<string, Qdrant.Client.Grpc.Value> payload, double score)
+        {
+            return new ChunkMetaData
+            {
+                Text = GetString(payload, "text"),
+                Name = GetString(payload, "fileName"),
+                DocumentId = GetString(payload, "documentId"),
+                ChunkIndex = GetInt(payload, "chunkIndex"),
+                Score = score
+                
+                
+            };
+        }
+        private string GetString(Google.Protobuf.Collections.MapField<string, Qdrant.Client.Grpc.Value> payload,string key)
+        {
+            return payload.ContainsKey(key)
+                ? payload[key].StringValue
+                : string.Empty;
+        }
+        private int GetInt(Google.Protobuf.Collections.MapField<string, Qdrant.Client.Grpc.Value> payload,string key)
+        {
+            return payload.ContainsKey(key)
+                ? (int)payload[key].IntegerValue
+                : 0;
+        }
+      
     }
-}
+    }
+

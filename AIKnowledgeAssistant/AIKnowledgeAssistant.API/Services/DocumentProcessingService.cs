@@ -1,4 +1,5 @@
 ﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Models;
 using Microsoft.AspNetCore.Http;
 using System.Text;
 using UglyToad.PdfPig;
@@ -26,10 +27,12 @@ namespace AIKnowledgeAssistant.API.Services
                 throw new ArgumentException("Invalid file");
             }
             _logger.LogInformation("Starting document processing: {FileName}", file.FileName);
-
+           
+          //  return;
             try
             {
-                // Step 1 : Extract text from PDF
+               
+                // Step 1 : Extract text from PDF and reterive file information
                 var text = ExtractTextFromPdf(filePath);
                 if (string.IsNullOrWhiteSpace(text))
                 {
@@ -38,21 +41,25 @@ namespace AIKnowledgeAssistant.API.Services
                 }
                 _logger.LogInformation("Text extraction completed");
                 //Step 2: Split text into chunks
-                var chunks = SplitIntoChunks(text, 100);
+                var chunks = SplitIntoChunks(text, 300,50);
                 _logger.LogInformation("Created {ChunkCount} chunks from document", chunks.Count);
 
                 //Step 3 : Generate embeddings and store them
 
                 var allVectors = new List<float[]>();
-                var tasks = chunks.Select(async chunk =>
+               
+                var tasks = chunks.Select(async (chunk,index) =>
                 {
+                    FileMetaData metaData = new FileMetaData { Name = file.FileName, ChunkIndex = index, DocumentId = $"{file.FileName}_{Guid.NewGuid()}" };
                     _logger.LogDebug("Generating embedding for chunk");
 
                     var embedding = await _embeddingService.GenerateEmbeddingAsync(chunk);
 
-                    await _vectorDatabaseService.StoreEmbedding(embedding.ToList(), chunk);
+                    await _vectorDatabaseService.StoreEmbedding(embedding.ToList(), chunk, metaData);
                     _logger.LogDebug("Stored embedding for chunk");
                 });
+
+
 
                 await Task.WhenAll(tasks);
                 _logger.LogInformation("Document processing completed successfully : {FileName}", file.FileName);
@@ -92,21 +99,33 @@ namespace AIKnowledgeAssistant.API.Services
                
 
         }
-        private List<string> SplitIntoChunks(string text, int chunkSize)
+        private List<string> SplitIntoChunks(string text, int chunkSize, int overlap)
         {
             if (string.IsNullOrWhiteSpace(text))
             {
                 _logger.LogWarning("Cannot split empty text into chunks");
                 return new List<string>();
             }
-
-            var words = text.Split(' ');
+           
+            var step = chunkSize - overlap;
+            var words = text.Split(' ', StringSplitOptions.RemoveEmptyEntries);
             var chunks = new List<string>();
-            for(int i =0;i<words.Length;i+= chunkSize)
+            for(int i =0;i<words.Length;i+= step)
             {
                 var chunk = string.Join(" ", words.Skip(i).Take(chunkSize));
-                chunks.Add(chunk);
+                if(!string.IsNullOrWhiteSpace(chunk))
+                {
+                    chunks.Add(chunk);
+                }
+                //Stop if we reached the end
+                if(i+chunkSize >=words.Length)
+                {
+                    break;
+                }
             }
+            //Console.WriteLine($"Total chunks: {chunks.Count}");
+            //Console.WriteLine($"First chunk: {chunks[0]}");
+            //Console.WriteLine($"Second chunk: {chunks[1]}");
             _logger.LogInformation("Extracted {ChunkCount} chunks", chunks.Count);
             return chunks;
 

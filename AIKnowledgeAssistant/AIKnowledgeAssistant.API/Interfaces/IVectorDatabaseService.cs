@@ -1,9 +1,11 @@
-﻿namespace AIKnowledgeAssistant.API.Interfaces
+﻿using AIKnowledgeAssistant.API.Models;
+
+namespace AIKnowledgeAssistant.API.Interfaces
 {
     public interface IVectorDatabaseService
     {
         Task CreateCollection();
-        Task StoreEmbedding(List<float> embedding, string text);
-        Task<List<string>> Search(float[] queryEmbedding);
+        Task StoreEmbedding(List<float> embedding, string text, FileMetaData metaData);
+        Task<List<ChunkMetaData>> Search(float[] queryEmbedding);
     }
 }

@@ -1,7 +1,9 @@
-﻿namespace AIKnowledgeAssistant.API.Interfaces
+﻿using AIKnowledgeAssistant.API.Models;
+
+namespace AIKnowledgeAssistant.API.Interfaces
 {
     public interface IAIResponseService
     {
-        Task<string> AskQuestionAsync(string question);
+        Task <AIResponse> AskQuestionAsync(string question);
     }
 }

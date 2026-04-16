@@ -1,4 +1,5 @@
 ﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Models;
 
 namespace AIKnowledgeAssistant.API.Services
 {
@@ -16,7 +17,7 @@ namespace AIKnowledgeAssistant.API.Services
             _openAIService = openAIService;
             _logger = logger;
         }
-        public async Task<string> AskQuestionAsync(string question)
+        public async Task<AIResponse> AskQuestionAsync(string question)
         {
             if (string.IsNullOrWhiteSpace(question))
             {
@@ -36,13 +37,26 @@ namespace AIKnowledgeAssistant.API.Services
                 var results = await _vectorDatabaseService.Search(queryEmbedding);
                 _logger.LogInformation("Vector search returned {ResultsCount} context chunks", results.Count);
                 //Step 3: Build Context
-                var matchingContext = BuildContext(results);
+                var matchingContext = BuildContext(results.Select(r => r.Text).ToList());
                 _logger.LogDebug("Context built for LLM Prompt");
+                //Step 4 : Build Sources
+                // Build sources
+                var sources = results.Select(r =>
+                    $"{r.Name} (Chunk {r.ChunkIndex} (Score{r.Score:F2}))"
+                ).ToList();
+
+                
+                _logger.LogDebug("Sources built for LLM Prompt");
                 //Step 4: Generate AI response
                 _logger.LogInformation("Sending prompt to LLM");
                 var answer = await _openAIService.GenerateAnswerAsync(matchingContext, question);
+                AIResponse response = new AIResponse
+                {
+                    Answer = answer,
+                    Sources = sources
+                };
                 _logger.LogInformation("AI response generated successfully");
-                return answer;
+                return response;
             }
             catch (Exception ex)
             {
@@ -50,6 +64,9 @@ namespace AIKnowledgeAssistant.API.Services
                 throw;
             }
         }
+
+       
+
         private string BuildContext(List<string> chunks)
         {
             if(chunks == null || chunks.Count == 0)
