@@ -56,7 +56,7 @@ namespace AIKnowledgeAssistant.API.Services
                     var embedding = await _embeddingService.GenerateEmbeddingAsync(chunk);
 
                     await _vectorDatabaseService.StoreEmbedding(embedding.ToList(), chunk, metaData);
-                    _logger.LogDebug("Stored embedding for chunk");
+                    _logger.LogDebug("Stored embedding for chunk in vector DB");
                 });
 
 
