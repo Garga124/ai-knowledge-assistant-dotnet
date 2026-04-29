@@ -22,6 +22,15 @@ Benefits:
 - Scales to large knowledge collections using vector search
 - Allows domain-specific knowledge integration
 
+## Features
+
+✔ Document upload and processing  
+✔ Text extraction and chunking  
+✔ Embedding generation using OpenAI  
+✔ Vector search using Qdrant  
+✔ AI-powered question answering  
+✔ Clean architecture with services and interfaces  
+
 ## Architecture
 
 The architecture follows a layered design with dependency injection and modular components.
