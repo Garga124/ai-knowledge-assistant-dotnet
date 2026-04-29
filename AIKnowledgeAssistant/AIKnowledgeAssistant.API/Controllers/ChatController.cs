@@ -1,4 +1,5 @@
 ﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Models;
 using AIKnowledgeAssistant.API.Models.DTO;
 using AIKnowledgeAssistant.API.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -16,7 +17,9 @@ namespace AIKnowledgeAssistant.API.Controllers
             _aIResponseService = aIResponseService;
             _logger = logger;
         }
-
+        /// <summary>
+        /// Ask a question based on uploaded documents
+        /// </summary>
         [HttpPost("ask")]
         public async Task<IActionResult> Ask([FromBody] QuestionRequest request)
         {
@@ -25,7 +28,12 @@ namespace AIKnowledgeAssistant.API.Controllers
             if (!ModelState.IsValid)
             {
                 _logger.LogWarning("Invalid model state");
-                return BadRequest(ModelState);
+                return BadRequest(new APIResponse<string>
+                {
+                    Success = false,
+                    Message = "Invalid request data",
+                    Data = null
+                });
             }
             /*
              if(request == null)
@@ -45,19 +53,28 @@ namespace AIKnowledgeAssistant.API.Controllers
                  return BadRequest("Question is too long");
              }
              */
-            try
-            {
-                _logger.LogInformation("Processing question :{Question}", request.Question);
+           /* try
+            {*/
+                _logger.LogInformation("Processing question :{QuestionLength} characters", request.Question?.Length);
                 var answer = await _aIResponseService.AskQuestionAsync(request.Question);
                 _logger.LogInformation("Successfully generated response");
-                return Ok(answer);
-            }
+                return Ok(new APIResponse<AIResponse>
+                {
+                    Success = true,
+                    Message = "Answer generated successfully",
+                    Data = answer
+                });
+           /* }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error while processing question");
-                return StatusCode(500, "An error occured while processing your request");
-               
-            }
+                return StatusCode(500, new APIResponse<string>
+                {
+                    Success = false,
+                    Message = "An error occurred while processing your request",
+                    Data = null
+                });
+            }*/
         }
     }
 }

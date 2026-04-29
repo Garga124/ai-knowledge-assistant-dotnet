@@ -1,4 +1,5 @@
 ﻿using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Models;
 using AIKnowledgeAssistant.API.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,9 @@ namespace AIKnowledgeAssistant.API.Controllers
             _vectorDatabaseService = vectorDatabaseService;
             _logger = logger;
         }
+        /// <summary>
+        /// Upload your documents into the system
+        /// </summary>
         [HttpPost("upload")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
@@ -29,7 +33,12 @@ namespace AIKnowledgeAssistant.API.Controllers
                 if (file == null || file.Length == 0)
                 {
                     _logger.LogWarning("Upload failed: File is empty");
-                    return BadRequest("File is empty");
+                    return BadRequest(new APIResponse<UploadResponse>
+                    {
+                        Success = false,
+                        Message = "File is empty",
+                        Data = null
+                    });
                 }
                 _logger.LogInformation($"Uploading file: {file.FileName}");
                 var uploadFolder = Path.Combine(Directory.GetCurrentDirectory(), "Uploads");
@@ -49,13 +58,27 @@ namespace AIKnowledgeAssistant.API.Controllers
                 await _documentProcessingService.ProcessDocument(file,filePath);
                 _logger.LogInformation("Document processing completed successfully for {FileName}", file.FileName);
 
-                return Ok("Document processed successfully");
+                return Ok(new APIResponse<UploadResponse>
+                {
+                    Success = true,
+                    Message = "Document uploaded and processed successfully",
+                    Data = new UploadResponse
+                    {
+                        FileName = file.FileName,
+                        FilePath = filePath
+                    }
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error occurred while uploading or processing document {FileName}", file?.FileName);
 
-                return StatusCode(500, "An internal server error occurred while processing the document.");
+                return StatusCode(500, new APIResponse<string>
+                {
+                    Success = false,
+                    Message = "An error occurred while processing the document",
+                    Data = null
+                });
             }
         }
 

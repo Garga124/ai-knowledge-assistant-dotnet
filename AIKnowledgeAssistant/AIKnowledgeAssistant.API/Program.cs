@@ -1,7 +1,17 @@
 using AIKnowledgeAssistant.API.Interfaces;
+using AIKnowledgeAssistant.API.Middleware;
 using AIKnowledgeAssistant.API.Services;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Services.AddProblemDetails(configure =>
+{
+    configure.CustomizeProblemDetails = context =>
+    {
+        context.ProblemDetails.Extensions.TryAdd("requestId", context.HttpContext.TraceIdentifier);
+    };
+
+});
+builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 
 builder.Logging.ClearProviders();
 builder.Logging.AddConsole();
@@ -40,6 +50,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseExceptionHandler();
+//app.UseMiddleware<GlobalExceptionHandler>();
 
 app.UseAuthorization();
 
